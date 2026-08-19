@@ -6,23 +6,48 @@ namespace LegacyDatabaseMigrationPOC.Controllers
 {
     public class DatabaseTestController : Controller
     {
-        public ActionResult Mssql()
+        public ActionResult Current()
         {
             try
             {
-                using (var db = new AppDbContext("MssqlConnection"))
+                using (var db = new AppDbContext())
+                {
+                    db.Database.Connection.Open();
+
+                    var connectionType = db.Database.Connection.GetType().FullName;
+                    var databaseName = db.Database.Connection.Database;
+                    var serverVersion = db.Database.Connection.ServerVersion;
+
+                    return Content(
+                        $"Database: {databaseName}{Environment.NewLine}" +
+                        $"Connection Type: {connectionType}{Environment.NewLine}" +
+                        $"Server Version: {serverVersion}"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                return Content("Connection FAILED:" + Environment.NewLine + ex);
+            }
+        }
+
+        public ActionResult SqlServer()
+        {
+            try
+            {
+                using (var db = new AppDbContext("SqlServerConnection"))
                 {
                     var canConnect = db.Database.Exists();
 
                     return Content(
                         canConnect
-                            ? "MSSQL connection successful."
-                            : "MSSQL database does not exist.");
+                            ? "SqlServer connection successful."
+                            : "SqlServer database does not exist.");
                 }
             }
             catch (Exception ex)
             {
-                return Content("MSSQL connection failed: " + ex.Message);
+                return Content("SqlServer connection failed: " + ex.Message);
             }
         }
 
@@ -52,26 +77,6 @@ namespace LegacyDatabaseMigrationPOC.Controllers
                     Environment.NewLine +
                     Environment.NewLine +
                     ex.ToString());
-            }
-        }
-
-        public ActionResult PostgreSql_old()
-        {
-            try
-            {
-                using (var db = new AppDbContext("PostgresConnection"))
-                {
-                    var canConnect = db.Database.Exists();
-
-                    return Content(
-                        canConnect
-                            ? "PostgreSQL connection successful."
-                            : "PostgreSQL database does not exist.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return Content("PostgreSQL connection failed: " + ex.Message);
             }
         }
     }
