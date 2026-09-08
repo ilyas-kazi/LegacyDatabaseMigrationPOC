@@ -17,16 +17,18 @@ namespace LegacyDatabaseMigrationPOC.Data
         {
         }
 
-        private static string GetConnectionStringName()
+        private static string ResolveConnectionString()
         {
             var provider = ConfigurationManager.AppSettings["DatabaseProvider"];
-
-            if (string.Equals(provider, "PostgreSql", StringComparison.OrdinalIgnoreCase))
-            {
-                return "PostgresConnection";
-            }
-
-            return "SqlServerConnection";
+            var envVarName = string.Equals(provider, "PostgreSql", StringComparison.OrdinalIgnoreCase)
+                ? "PostgresConnection"
+                : "AppDbConnection";
+            
+            var fromEnv = Environment.GetEnvironmentVariable(envVarName);
+            if (!string.IsNullOrEmpty(fromEnv))
+                return fromEnv;
+            
+            return envVarName;
         }
 
         public DbSet<Customer> Customers { get; set; }
